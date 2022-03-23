@@ -9,7 +9,8 @@
     <title>Battle Warship</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="vendors/vue.js"></script>
+    <!-- <script src="vendors/vue.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.js"></script>
     <script src="vendors/tailwind.js"></script>
     <style>
     .z {
@@ -30,10 +31,12 @@
       :class="{ 'bg-indigo-800': turnA, 'bg-rose-800': !turnA }"
     >
       <section class="relative text-center mx-4 w-full container mx-auto">
-        <div class="w-full flex justify-end text-sm text-white font-semibold px-2 py-0.5" v-if="roomId">
-          <a :href="'?roomId='+roomId&team=b" target="_blank">Share Your Room: <code>{{ roomId }}</code></a>
-        </div>
+        
         <div class="p-4 shadow-md rounded bg-white w-full">
+          <div class="w-full flex justify-end text-sm font-medium px-3 py-0.5" v-if="roomId">
+            Share Your Room: 
+            <a class="ml-2 hover:text-indigo-600 hover:no-underline underline text-indigo-400" :href="'?roomId='+roomId+'&team=b'" target="_blank"><code>{{ roomId }}</code></a>
+        </div>
           <div class="grid grid-cols-5 gap-4 relative">
             <!-- Player A -->
             <player class="col-span-2" :name="playerA" color="text-indigo-600" :turn="turnA">

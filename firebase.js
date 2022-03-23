@@ -14,24 +14,4 @@
 
     w.dbRef = firebase.database().ref('battle-warship');
 
-    // if (sessionStorage.getItem('__uid')) {
-    //     w.uid = sessionStorage.getItem('__uid');
-    // } else {
-    //     sessionStorage.setItem('__uid', (w.uid = '-' + btoa(Date.now())))
-    // }
-
-    // let roomId = sessionStorage.getItem('__room');
-
-    // if (!roomId) {
-    //     let searchParams = new URLSearchParams(w.location.search);
-    //     if (searchParams.has('roomId')) {
-    //         sessionStorage.setItem('__room', (w.roomId = searchParams.get('roomId')))
-    //     }
-    // }
-
-    // if (!roomId) {
-    //     sessionStorage.setItem('__room', '');
-    // } else {
-    //     sessionStorage.setItem('__room', (w.roomId = roomId));
-    // }
 }(window);

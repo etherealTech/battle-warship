@@ -17,7 +17,7 @@ new Vue({
 
         uid: window.uid,
         team: searchParams.has('team') ? searchParams.get('team') : 'b',
-        roomId: searchParams.has('roomId') ? searchParams.get('room') : null,
+        roomId: searchParams.has('roomId') ? searchParams.get('roomId') : null,
 
         ref: undefined,
     },
@@ -111,9 +111,6 @@ new Vue({
             });
         },
         async listenFirebaseEvents() {
-            // sessionStorage.setItem('__team', this.team);
-            // sessionStorage.setItem('__room', this.roomId);
-
             this.ref = dbRef.child(this.roomId);
 
             await this.update();
@@ -176,7 +173,7 @@ new Vue({
                 dbRef.push().then(snap => {
                     this.team = 'a';
                     this.roomId = snap.key;
-                    this.listenFirebaseEvents();
+                    // window.location.replace('?roomId=' + this.roomId + '&team=a');
                 });
             } else {
                 this.listenFirebaseEvents();
