@@ -1,4 +1,4 @@
-const searchParams = new URLSearchParams(w.location.search);
+const searchParams = new URLSearchParams(window.location.search);
 
 new Vue({
     data: {
