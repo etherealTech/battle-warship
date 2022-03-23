@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>Battle Warship</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="vendors/vue.js"></script>
+    <script src="vendors/tailwind.js"></script>
+    <style>
+    .z {
+      position: relative;
+    }
+    
+    .z::before {
+      content: "["attr(data-no) "]";
+      font-size: .6rem;
+      color: #888;
+    }
+    </style>
+  </head>
+
+  <body class="text-slate-700">
+    <main
+      class="flex justify-center items-center absolute inset-0  to-lime-900 transition-all duration-600"
+      :class="{ 'bg-indigo-800': turnA, 'bg-rose-800': !turnA }"
+    >
+      <section class="relative text-center mx-4 w-full container mx-auto">
+        <div class="w-full flex justify-end text-sm text-white font-semibold px-2 py-0.5" v-if="roomId">
+          <a :href="'?roomId='+roomId" target="_blank">Share Your Room: <code>{{ roomId }}</code></a>
+        </div>
+        <div class="p-4 shadow-md rounded bg-white w-full">
+          <div class="grid grid-cols-5 gap-4 relative">
+            <!-- Player A -->
+            <player class="col-span-2" :name="playerA" color="text-indigo-600" :turn="turnA">
+              <warship
+                    class="z"
+                    v-for="(n,i) of a"
+                    icon="4"
+                    :id="i"
+                    :data-no="i"
+                    :state="n"
+                    :underattack="underAttackA"
+                    :attacking="underAttackB"
+                    :attacker="attacker"
+                    :colors="['bg-indigo-400','bg-indigo-600']"></warship>
+            </player>
+
+            <div class="w-full h-full flex flex-col justify-center items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 transition-all ease-in-out duration-800 transform scale-100" :class="{
+                'rotate-0': turnA,
+                'rotate-180': !turnA,
+                'text-rose-600': (turnA && attacker) || (!turnA && !attacker),
+                'text-indigo-600': (!turnA && attacker) || (turnA && !attacker),
+                '-translate-x-8 animate-pulse translate-y-8': turnA && attacker,
+                'translate-x-8 animate-pulse translate-y-8': !turnA && attacker,
+                'scale-150': attacker
+              }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+
+              <div v-show="!attacker" class="transform translate-y-4 mx-auto flex justify-center items-center px-4 py-3 rounded-xl h-10 w-10 overflow-hidden bg-stone-400/30 text-gray-600 text-lg font-bold" v-text="number" ></div>
+            </div>
+
+            <!-- Player B -->
+            <player class="col-span-2" :name="playerB" color="text-rose-600" :turn="!turnA" >
+              <warship
+                    class="z"
+                    v-for="(n,i) of b"
+                    icon="6"
+                    :id="i"
+                    :data-no="i"
+                    :mirror="true"
+                    :state="n"
+                    :underattack="underAttackB"
+                    :attacking="underAttackA"
+                    :attacker="attacker"
+                    :colors="['bg-rose-400','bg-rose-600']"></warship>
+            </player>
+
+            <div class="col-span-5 flex flex-col space-y-2 justify-center items-center">
+              <!-- Play Button -->
+              <button 
+                v-if="playWithBot"
+                v-text="turnA ? 'Your Turn' : 'Bot Turn'"
+                class="text-lg font-semibold py-4 px-12 rounded-lg transition-all duration-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 disabled:bg-gray-300 disabled:text-gray-50"
+                @click="random()"
+                :disabled="!(playable && turnA)"
+                :class="playable && turnA && 'bg-gray-800 text-gray-300 hover:brightness-150'" 
+              ></button>
+              <button 
+                v-else
+                v-text="playable ? ((turnA ? playerA : playerB) + ' Turn') : 'Please wait...'"
+                @click="random()"
+                class="text-lg font-semibold py-4 px-12 rounded-lg transition-all duration-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 bg-gray-800 text-gray-300 hover:brightness-150 disabled:hover:brightness-100 disabled:bg-gray-300 disabled:text-gray-50"
+                :disabled="!playable"
+                :class="{ 'bg-indigo-700': turnA, 'bg-rose-700': !turnA }"
+              ></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Player Template -->
+    <template id="player">
+      <div>
+        <h2
+          class="transition duration-400 font-semibold py-2 flex justify-center items-center w-full space-x-2"
+          :class="turn && 'font-bold ' + color"
+          v-text="name"></h2>
+        <div class="grid gap-2">
+            <slot></slot>
+        </div>
+      </div>
+    </div>
+  </div>
+    </template>
+
+    <!-- Warship Template -->
+    <template id="warship">
+      <div class="flex flex-col justify-center items-center pt-4">
+        <img
+          class="h-16 transform object-contain object-center transform transition-all duration-800"
+          :class="{
+            '-scale-x-100': mirror,
+            'grayscale opacity-40': state == -1,
+            'cursor-pointer': underattack,
+            'opacity-60 grayscale hover:grayscale-0 hover:opacity-100': underattack,
+            'opacity-40 grayscale': attacking && attacker != id,
+            'animate-pulse': attacking && attacker == id,
+          }"
+          :src="`images/ships/${i}.png`"
+          @click="$root.attackTarget(id)"
+        />
+        <div class="grid gap-0.5 grid-cols-4 self-center h-1.5" v-if="state !== -1">
+          <div class="w-4 border border-0.5 border-gray-400 transition-all ease duration-400 rounded-l"
+               :class="{ [colors[0]]: state > 0, 'bg-gray-300': !(state > 0) }"></div>
+          <div class="w-4 border border-0.5 border-gray-400  transition-all ease duration-400"
+               :class="{ [colors[0]]: state > 1, 'bg-gray-300': !(state > 1) }"></div>
+          <div class="w-4 border border-0.5 border-gray-400  transition-all ease duration-400"
+               :class="{ [colors[0]]: state > 2, 'bg-gray-300': !(state > 2) }"></div>
+          <div class="w-4 border border-0.5 border-gray-400  transition-all ease duration-400 rounded-r"
+               :class="{ [colors[0]]: state > 3, 'bg-gray-300': !(state > 3) }"></div>
+        </div>
+        <div v-else class="h-1.5"></div>
+        <div ref="el">
+          <!-- class="mx-auto pt-1 w-12 h-1.5 rounded-full transition-all duration-600" :class="color" -->
+        </div>
+      </div>
+    </template>
+
+    <script src="components/player.js"></script>
+    <script src="components/warship.js"></script>
+    <script src="firebase.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
