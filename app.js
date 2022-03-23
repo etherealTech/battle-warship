@@ -1,3 +1,5 @@
+const searchParams = new URLSearchParams(w.location.search);
+
 new Vue({
     data: {
         playable: true,
@@ -14,8 +16,8 @@ new Vue({
         b: { 1: 0, 3: 0, 5: 0, 7: 0, 9: 0 },
 
         uid: window.uid,
-        team: sessionStorage.getItem('__team') || 'b',
-        roomId: window.roomId,
+        team: searchParams.has('team') ? searchParams.get('team') : 'b',
+        roomId: searchParams.has('roomId') ? searchParams.get('room') : null,
 
         ref: undefined,
     },
@@ -71,6 +73,7 @@ new Vue({
             if (!(this.underAttackA || this.underAttackB)) return;
             let attacker = this.underAttackA ? this.b : this.a;
             let defender = this.underAttackA ? this.a : this.b;
+            if (!(id in defender)) return;
             attacker[this.attacker] = 0;
             defender[id] = -1;
             this.underAttackA = this.underAttackB = false;
@@ -108,8 +111,8 @@ new Vue({
             });
         },
         async listenFirebaseEvents() {
-            sessionStorage.setItem('__team', this.team);
-            sessionStorage.setItem('__room', this.roomId);
+            // sessionStorage.setItem('__team', this.team);
+            // sessionStorage.setItem('__room', this.roomId);
 
             this.ref = dbRef.child(this.roomId);
 
@@ -134,6 +137,7 @@ new Vue({
                         let n = parseInt(e.key);
                         if (this.team === 'a' && this.underAttackB) {
                             let x = this.b;
+                            if (!(n in x)) return;
                             x[n] != -1 && this.attackTarget(n);
                         } else if (this.team === 'b' && this.underAttackA) {
                             let x = this.a;
